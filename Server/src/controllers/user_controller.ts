@@ -1,20 +1,16 @@
-import { Request, RequestHandler, Response } from "express";
+import { RequestHandler } from "express";
 import User from "../model/user_model";
 import { createError } from "../utils/createErros";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import env from "../utils/validateEnv";
+import { CreateUserDto, UserIdDto } from "../types/user";
 
-interface createDto {
-  name: string;
-  email: string;
-  password: string;
-}
 //create user
 export const createUser: RequestHandler<
   unknown,
   unknown,
-  createDto,
+  CreateUserDto,
   unknown
 > = async (req, res, next) => {
   const { name, email, password } = req.body;
@@ -23,12 +19,11 @@ export const createUser: RequestHandler<
     if (alreadyExits) {
       return next(createError(400, "User already exits"));
     }
-    //hash password using bcrypt
 
     const hashedPassword = await bcrypt.hash(password, 12);
 
     const user = new User({ name, email, password: hashedPassword });
-    const savedUser = await user.save();
+    await user.save();
     return res.status(201).json({
       success: true,
       message: "User created successfully",
@@ -42,7 +37,7 @@ export const createUser: RequestHandler<
 export const userLogin: RequestHandler<
   unknown,
   unknown,
-  createDto,
+  CreateUserDto,
   unknown
 > = async (req, res, next) => {
   const { email, password } = req.body;
@@ -66,12 +61,12 @@ export const userLogin: RequestHandler<
     });
 
     if (isUserExit) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password, ...user } = isUserExit.toObject();
       return res
         .cookie("access_token", token, {
           expires: new Date(Date.now() + 1000 * 60 * 60 * 24),
           httpOnly: true,
-          secure: true,
         })
         .json({ success: true, message: "Login success", user: user, token });
     }
@@ -80,13 +75,9 @@ export const userLogin: RequestHandler<
   }
 };
 
-interface userIdDto {
-  id: string;
-}
-
 //get user by id
 export const getUserById: RequestHandler<
-  userIdDto,
+  UserIdDto,
   unknown,
   unknown,
   unknown
@@ -97,6 +88,7 @@ export const getUserById: RequestHandler<
     if (!getUser) {
       return next(createError(404, "User not found"));
     } else {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password, ...rest } = getUser.toObject();
       return res.status(200).json({ success: true, data: rest });
     }
@@ -112,6 +104,7 @@ export const getUsers: RequestHandler = async (req, res, next) => {
 
     if (users) {
       const usersWithoutPassword = users.map((user) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { password, ...rest } = user.toObject();
         return rest;
       });
@@ -128,9 +121,9 @@ export const getUsers: RequestHandler = async (req, res, next) => {
 
 //update user
 export const updateUser: RequestHandler<
-  userIdDto,
+  UserIdDto,
   unknown,
-  createDto,
+  CreateUserDto,
   unknown
 > = async (req, res, next) => {
   const { id } = req.params;
@@ -149,6 +142,7 @@ export const updateUser: RequestHandler<
     });
 
     if (updataUser) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password, ...user } = updataUser.toObject();
       return res.status(200).json({
         success: true,
@@ -163,7 +157,7 @@ export const updateUser: RequestHandler<
 
 //delete user
 export const deleteUser: RequestHandler<
-  userIdDto,
+  UserIdDto,
   unknown,
   unknown,
   unknown
