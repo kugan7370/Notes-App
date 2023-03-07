@@ -39,22 +39,17 @@ return () => {
 
   },[token])
 
-  
-
-
 
   return (
     <div>
       <Navbar />
 
       {/* notes */}
-      <div className='mt-5 px-10'>
+      <div className='mt-20 mb-10 px-10'>
         <div className='grid grid-cols-3 gap-10'>
           {getNotes && getNotes?.map((item, index) => {
             return <Notes notes={item}  key={index} color={getRandomColor()} />
           })}
-
-
         </div>
       </div>
     </div>

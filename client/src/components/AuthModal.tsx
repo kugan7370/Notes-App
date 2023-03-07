@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import React,{useState} from 'react';
 import { setTokenCookie, setTokenToLocalStorage, setUserToLocalStorage } from '../utils/token';
 
@@ -8,9 +8,11 @@ interface ModalProps {
 }
 
 function Modal({ isOpen, onClose }: ModalProps) {
+ const [isLogin, setIsLogin] = useState(true)
 const [userdetails, setuserdetails] = useState({
     email: '',
-    password: ''
+    password: '',
+    name: ''
 })
 
 const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -20,12 +22,11 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     })
 }
 
-const handleLogin = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>)  => {
+const handleAuth = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>)  => {
     e.preventDefault()
-  
-    
     try {
-        const results = await axios('api/user/login', {
+        const results = await axios({
+            url: `api/user/${isLogin?"login":"create"}`,
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -33,10 +34,12 @@ const handleLogin = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>)  
             data: JSON.stringify(userdetails)
            
         })
-        if(results.status === 200){
-            alert('login success')
+        console.log(results);
+        
+        if(results.status === 200 || results.status === 201){
             const token = results?.data?.token
             const user = results?.data?.user
+            const message = results?.data?.message
             if(token){
                 setTokenToLocalStorage(token)
                 setTokenCookie(token)
@@ -44,15 +47,32 @@ const handleLogin = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>)  
             if(user){
                 setUserToLocalStorage(user)
             }
+            if(message){
+                alert(message)
+            }
           window.location.reload()
         }
     
-       
-    } catch (error) {
-        alert(error)
+    } catch (error:unknown) {
+        if (error instanceof AxiosError && error.response) {
+            alert(error.response.data.message)
+          } else {
+            alert(error instanceof Error ? error.message : 'Unknown error')
+          }
+      
+        
+      
 
       
     }
+  
+    setuserdetails({
+        email: '',
+        password: '',
+        name: ''
+    })
+
+    
 }
 
 
@@ -74,13 +94,14 @@ const handleLogin = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>)  
                         <div className="sm:flex sm:items-start">
                             <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                                 <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
-                                    Login
+                                {isLogin?"Login":"Register"}
                                 </h3>
                                 <div className="mt-2">
+                                   {!isLogin && <input type="text" name='name' onChange={handleChange} placeholder="Username" className="w-full border-2 border-gray-300 p-2 rounded-lg outline-none focus:border-blue-400 mt-2" />}
                                     <input type="email" name='email' onChange={handleChange} placeholder="email" className="w-full border-2 border-gray-300 p-2 rounded-lg outline-none focus:border-blue-400" />
                                     <input type="password" name='password' onChange={handleChange} placeholder="password" className="w-full border-2 border-gray-300 p-2 rounded-lg outline-none focus:border-blue-400 mt-2" />
-                                    <button onClick={handleLogin} className="w-full bg-blue-500 text-white p-2 rounded-lg mt-2">Login</button>
-                                    <button className="w-full bg-red-500 text-white p-2 rounded-lg mt-2">Register</button>
+                                    <button onClick={handleAuth} className="w-full bg-blue-500 text-white p-2 rounded-lg mt-2">{isLogin?'Login':"Register"}</button>
+                                    <button onClick={()=>setIsLogin(!isLogin)} className="w-full bg-red-500 text-white p-2 rounded-lg mt-2">{isLogin?"Register":"Login"}</button>
                                     <button className="w-full bg-green-500 text-white p-2 rounded-lg mt-2">Forgot Password</button>
 
                                 </div>

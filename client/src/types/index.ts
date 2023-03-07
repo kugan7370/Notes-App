@@ -5,6 +5,7 @@ export interface NotesDto {
   userId: string;
   createdAt: string;
   updatedAt: string;
+  name?: string;
   __v: number;
 }
 

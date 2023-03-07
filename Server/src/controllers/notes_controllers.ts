@@ -33,7 +33,7 @@ export interface NoteWithUsername extends NoteDocument {
 export const getNotes: RequestHandler = async (req, res, next) => {
   try {
     //get all notes
-    const notes = await Note.find();
+    const notes = await Note.find().sort({ createdAt: -1 });
     if (!notes) {
       next(createError(404, "Notes not found"));
     }
@@ -61,7 +61,7 @@ export const getUserNotes: RequestHandler = async (req, res, next) => {
   const { userId } = req.body;
 
   try {
-    const note = await Note.find({ userId });
+    const note = await Note.find({ userId }).sort({ createdAt: -1 });
     if (!note) {
       next(createError(404, "Note not found"));
     }

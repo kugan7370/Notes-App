@@ -21,9 +21,9 @@ router.get("/getNotes", getNotes);
 router.get("/getUserNotes", varifyUserCookie, getUserNotes);
 
 //update notes
-router.put("/update/:id", varifyUser, updateNotes);
+router.put("/update/:id", varifyUserCookie, updateNotes);
 
 //delete notes
-router.delete("/delete/:id", varifyUser, deleteNote);
+router.delete("/delete/:id", varifyUserCookie, deleteNote);
 
 export default router;
